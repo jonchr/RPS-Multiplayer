@@ -2,9 +2,11 @@
 /////////////
 //Variables//
 /////////////
-
-  var imagesActive = false;
-
+  
+  var playerNum = "Player1";
+  var opponentNum = "Player2";
+  var playerWaiting = false;
+  var playerChoice;
 
   // Initialize Firebase
   var config = {
@@ -23,7 +25,6 @@
 //  Events  //
 //////////////
 
-
   //When begin button is clicked, submits the player's name into firebase
   $("#begin").on("click", function() {
     
@@ -34,35 +35,122 @@
     name: $("#name").val().trim(),
     wins: 0,
     losses: 0,
+    ties: 0,
     choice: "",
-    };
-
-    console.log(player.name);
+    waiting: false,
+    }; 
 
     //Pushes the player to the Firebase database
-    database.ref().push(player);
+    //If player 1 exists in Firebase, sets up current player as player 2
+    //Else, sets up current player as player 1
+    database.ref().child("Player1").once("value", function(snapshot) {
+      //if player 1 exists
+      var userData = snapshot.val();
+      if(userData) {
+        //player 1 exists
+        console.log("You are player 2");
+        playerNum = "Player2";
+        opponentNum = "Player1";
+      }
+      else {
+        //player 1 doesn't exist
+        console.log("You are player 1");
+        playerNum = "Player1";
+        opponentNum = "Player2";
+      }
+      database.ref().child(playerNum).set(player);
+    });
 
     //Clears player name from input form
     $("#name").val("");
 
-    //checks if opponent is available
-    //connects to next available player
-    //if not, waits until they are
-    //if they are, presents choices
-    toggleChoices();
+    //Updates status message to direct player
+    updateStatus("Select a option:");
+    //Hides player entry form
+    toggleShow($("#playerEntry"));
+    //Reveals RPS buttons
+    toggleShow($("#choiceIcons"));
 
   });
+
+//Updates the player's box as necessary
+  database.ref().child(playerNum).on("value", function(snapshot) {
+    if(snapshot!==null) {
+      $("#myName").text(snapshot.val().name);
+      $("#myRecord").text("Wins: " 
+          + snapshot.val().wins + ", Losses: " 
+          + snapshot.val().losses + ", Ties: " 
+          + snapshot.val().ties);
+    }
+    // If any errors are experienced, log them to console.
+  }, function(errorObject) {
+    console.log("The read failed: " + errorObject.code);
+  });
+
+  //Updates the opponent's box as necessary
+  database.ref().child(opponentNum).on("value", function(snapshot) {
+    if(snapshot!==null) {
+      $("#oppName").text(snapshot.val().name);
+      $("#oppRecord").text("Wins: " 
+          + snapshot.val().wins + ", Losses: " 
+          + snapshot.val().losses + ", Ties: " 
+          + snapshot.val().ties);
+    }
+    // If any errors are experienced, log them to console.
+  }, function(errorObject) {
+    console.log("The read failed: " + errorObject.code);
+  });
+
 
   //When one of the RPS button images is pressed
   $(".myChoice").on("click", function() {
 
-    //Stores the player's selection as myWeapon
-    var myWeapon = $(this).attr("alt");
+    //Stores the player's choice
+    playerChoice = $(this).attr("alt")
+    database.ref().child(playerNum).child("choice").set(playerChoice);
+    
+    //Updates status message
+    updateStatus("Waiting on your opponent; in the meantime, feel free to trash talk them below.");
 
-    database.ref().set("choice", myWeapon);
+    //Sets the player to waiting mode
+    database.ref().child(playerNum).child("waiting").set(true);
+    playerWaiting = true;
+
+    toggleShow($("#choiceIcons"));
+
+  });
+
+  //Another check, to respond when both players are waiting
+  database.ref().child(opponentNum).on("value", function(snapshot) {
+    if(snapshot.val()!==null){
+      console.log("checking");
+      if (snapshot.val().waiting === true & playerWaiting) {
+        console.log("we have a battle!");
+        console.log("I chose",playerChoice,"and they chose",snapshot.val().choice);
+        compare(playerChoice, snapshot.val().choice);
+      }
+    }
+  // If any errors are experienced, log them to console.
+  }, function(errorObject) {
+    console.log("The read failed: " + errorObject.code);
+  });
+
+  //Saves the message to FireBase when a new message is submitted in the chat box
+  $("#submit").on("click", function() {
+
+    event.preventDefault();
+
+    var name  = "";
+    database.ref().child(playerNum).once("value", function(snapshot) {
+      name = snapshot.val().name;
+    });
+    database.ref().child("Chat").push(name + ": " + $("#myMessage").val().trim());
+  });
 
 
-
+  database.ref().child("Chat").on("child_added", function(childSnapshot, prevChildKey) {
+    console.log(childSnapshot.val());
+    $("#chatbox").prepend("<div>" + childSnapshot.val() + "</div>");
 
   });
 
@@ -70,16 +158,38 @@
 //  Functions  //
 /////////////////
 
-  //If imagesActive is true, hides them
-  //If imagesActive is false, shows them
-  function toggleChoices() {
+  function updateStatus(message) {
+    $("#status").text(message);
+  }
 
+  //If the passed HTMLObject is hidden, shows it
+  //If the passed HTML is visible, hides it
+  function toggleShow(myHTMLObject) {
 
-
+    if(myHTMLObject.attr("data-toggle") === "on") {
+      myHTMLObject.attr("data-toggle", "off");
+      myHTMLObject.css("display", "none");
+    }
+    else {
+      myHTMLObject.attr("data-toggle", "on");
+      myHTMLObject.css("display", "initial");
+    }
   }
 
   //function comparing player's choice to opponent's
   function compare(myChoice, theirChoice) {
+
+    //Sets all of the waiting conditions to false so there's no endless loop
+    waiting = false;
+    database.ref().child(playerNum).update({
+      waiting: false,
+      choice: ""
+    });
+    database.ref().child(opponentNum).update({
+      waiting: false,
+      choice: ""
+    });
+
     //If tie
     if(myChoice === theirChoice) {
       tie();
@@ -136,19 +246,57 @@
   }
 
   function win() {
+
     //increase your wins by 1
+    database.ref().child(playerNum).once("value", function(snapshot) {
+      updatePlayerScore("wins", playerNum, snapshot.val().wins + 1);
+    });
+    //increases their losses by 1
+    //since wins is only called by the active player, hopefully won't have an issue of double results
+    database.ref().child(opponentNum).once("value", function(snapshot) {
+      updatePlayerScore("losses", opponentNum, snapshot.val().losses + 1);
+    });
+
+    updateStatus("You won! If you want to play again, select one from below!");
+    toggleShow($("#choiceIcons"));
     //appropriate messaging
     //reset game
   }
 
   function lose() {
-    //increase your losses by 1
-    //appropriate messaging
+     //increase your losses by 1
+    database.ref().child(playerNum).once("value", function(snapshot) {
+      updatePlayerScore("losses", playerNum, snapshot.val().losses + 1);
+    });
+    //increase their wins by 1
+    database.ref().child(opponentNum).once("value", function(snapshot) {
+      updatePlayerScore("wins", opponentNum, snapshot.val().wins + 1);
+    });
+    
+    updateStatus("You lost! If you want to get another chance, select one of the below.");
+
     //reset game
   }
 
   function tie() {
-    //increase your ties by 1
+    //Increases your and their ties by 1
+    database.ref().child(playerNum).once("value", function(snapshot) {
+      updatePlayerScore("ties", playerNum, snapshot.val().ties + 1);
+    });
+    database.ref().child(opponentNum).once("value", function(snapshot) {
+      updatePlayerScore("ties", opponentNum, snapshot.val().ties + 1);
+    });
     //appropriate messaging
     //reset game
   }
+
+  //New function needed because of asynchronity
+  function updatePlayerScore(outcome, player, score) {
+    database.ref().child(player).child(outcome).set(score);
+  }
+
+///////////////////
+//  Active Text  //
+///////////////////
+
+  updateStatus("Enter your name to start!");

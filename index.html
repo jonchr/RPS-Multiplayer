@@ -18,7 +18,7 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 	<!-- Firebase Reference -->
-  	<script src="https://www.gstatic.com/firebasejs/live/3.0/firebase.js"></script>
+  	<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
 
 </head>
 <body>
@@ -26,70 +26,67 @@
 <div class="container">
 	
 	<!-- Headers -->
-	<div class="row text-center" style="background-color: #ccc;">
+	<div class="jumbotron row text-center" style="background-color: #ccc;">
 		<div class="col-md-12">
 			<header><h1>Welcome to Rock Paper Scissors!</h1></header>
 		</div>
 	</div>
-	
-	<br />
 
-	
-	<!-- Section for player to enter their info when they start -->
-	<div class="row text-center form-group" id="entryrow">
-		<div class="col-md-12">
-			<label for="name">Player Name:</label>
-			<input id="name" placeholder="John Smith, etc." type="text">
-			<button class="btn btn-primary" id="begin">Start</button>
-		</div>
-	</div>
-
-	<!-- Section for player's information -->
-	<div class="row text-center" id="playerRow">
-		<div class="col-md-12">
-			<h3 id="myName">Michel</h3> 
+	<!-- Second row where majority of content lies -->
+	<div class="row">
+		<!-- Section for player's information -->
+		<div class="col-md-3 text-left rounded-left" style="border: 1px solid #ccc;">
+			<h3>Player:</h3>
+			<h4 id="myName"></h4> 
 			<img src="" id="myAvatar" style="display:none;">
-			<p id="myRecord">Wins: 0, Losses: 0, Ties: 0</p>
+			<p id="myRecord">Wins: 1, Losses: 0, Ties: 0</p>
 		</div>
-	</div>
-
-	<br />
-
-	<!-- Section for current game status -->
-	<div class="row text-center">
-		<div class="col-md-12">
-			<h2 id="status">Waiting.</h2>
-		</div>
-	</div>
-
-	<!-- Section for selecting R/P/S by clicking on the image -->
-	<div class="row d-inline-block text-center">
-		<div class="col-md-12">
-			<img src="./assets/images/Rock.png" class="img-circle myChoice" alt="rock">
-			<img src="./assets/images/Paper.png" class="img-circle myChoice" alt="paper">
-			<img src="./assets/images/Scissors.png" class="img-circle myChoice" alt="scissors">
-		</div>
-	</div>
 	
-	<!-- Section for the opponent's information -->
-	<div class="row text-center" id="oppRow">
-		<div class="col-md-12">
+		<!-- Center section for most of the updates/information during the game-->
+		<div class="col-md-6 text-center">
+			
+			<!-- Current Game status -->
+			<h3 id="status"></h3>
+
+			<!-- Player name entry form -->
+			<form>
+				<div id="playerEntry" data-toggle="on">
+					<br />
+					<label for="name">Player Name:</label>
+					<input id="name" placeholder="John Smith, etc." type="text">
+					<button class="btn btn-primary" type="submit" id="begin">Start</button>
+				</div>
+			</form>
+			
+			<!-- Rock/Paper/Scissors images -->
+			<div id="choiceIcons" data-toggle="off" style="display:none;">
+				<img src="./assets/images/Rock.png" class="img-circle myChoice" alt="rock">
+				<img src="./assets/images/Paper.png" class="img-circle myChoice" alt="paper">
+				<img src="./assets/images/Scissors.png" class="img-circle myChoice" alt="scissors">
+			</div>
+		</div>
+
+		<!-- Section for the opponent's information -->
+		<div class="col-md-3 text-right rounded-right" style="border: 1px solid #ccc;">
 			<h3>Your opponent:</h3>
-			<h4 id="oppName">Pavlov</h4> 
+			<h4 id="oppName"></h4> 
 			<img src="" id="oppAvatar" style="display:none;">
 			<p id="oppRecord">Wins: 0, Losses: 0, Ties: 0</p>
 		</div>
 	</div>
 
-	<br />
+	<hr />
 	
-	<!-- Section for trash-talk -->
+	<!-- Third row is devoted to trash-talk -->
 	<div class="row text-center form-group">
 		<div class="col-md-3"></div>
 		<div class="col-md-6">
-	  		<label for="comment">Razz your foe:</label>
-	  		<textarea class="form-control" rows="7" id="comment"></textarea>
-	  		<button class="btn btn-primary" id="submit">Submit</button>
+			<form>
+		  		<label for="comment">Razz your foe:</label>
+		  		<div class="jumbotron" id="chatbox"></div>
+		  		<input class="form-control" id="myMessage" placeholder="Good day" type="text">
+		  		<button class="btn btn-primary" id="submit">Submit</button>
+	  		</form>
 		</div>
 		<div class="col-md-3"></div>
 	</div>

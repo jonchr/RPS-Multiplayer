@@ -1,0 +1,11 @@
+	#chatbox{
+		margin: auto auto 0px;
+		background-color: #f3f3f3;
+		border: 1px solid #ccc;
+		border-radius: 7px;
+		text-align: left;
+		padding: 5px 10px;
+		min-height: 100px;
+		max-height: 250px;
+		overflow: auto;
+	}
