@@ -1,4 +1,40 @@
-	#chatbox{
+	label {
+		text-align: right;
+		width: 105px;
+	}
+	hr {
+		margin-bottom: 10px;
+	}
+	.jumbotron {
+		margin-bottom: 20px;
+	}	
+	#status {
+		margin-top: 0px;
+	}
+	#name, #avatar {
+		width: 200px;
+		height: 25px;
+		border: 1px solid grey;
+		border-radius: 5px;
+		margin: 2px 0px;
+		padding: 6px;
+	}
+	#myAvatar, #oppAvatar {
+		height: 125px;
+		border: 2px solid #ccc;
+		padding: 10px;
+		margin: 15px 0px;
+	}
+	#myAvatar {
+		float: right;
+	}
+	#oppAvatar {
+		float: left;
+	}
+	#begin {
+		margin-top: 3px;
+	}
+	#chatbox {
 		margin: auto auto 0px;
 		background-color: #f3f3f3;
 		border: 1px solid #ccc;
@@ -6,6 +42,9 @@
 		text-align: left;
 		padding: 5px 10px;
 		min-height: 100px;
-		max-height: 250px;
+		max-height: 200px;
 		overflow: auto;
+	}
+	#submit, #clear {
+		margin-top: 5px;
 	}

@@ -33,6 +33,7 @@
     //stores the player's name in a temporary player object
     var player = {
     name: $("#name").val().trim(),
+    avatar: $("#avatar").val(),
     wins: 0,
     losses: 0,
     ties: 0,
@@ -77,10 +78,12 @@
   database.ref().child(playerNum).on("value", function(snapshot) {
     if(snapshot!==null) {
       $("#myName").text(snapshot.val().name);
-      $("#myRecord").text("Wins: " 
-          + snapshot.val().wins + ", Losses: " 
-          + snapshot.val().losses + ", Ties: " 
-          + snapshot.val().ties);
+      $("#myAvatar").attr("src", "./assets/images/" + snapshot.val().avatar + ".png");
+      $("#myAvatar").attr("data-toggle", "on");
+      $("#myAvatar").css("display", "initial");
+      $("#myRecord").html("   Wins: " + snapshot.val().wins 
+        + "<br/>Losses: " + snapshot.val().losses 
+        + "<br/>Ties: " + snapshot.val().ties);
     }
     // If any errors are experienced, log them to console.
   }, function(errorObject) {
@@ -91,10 +94,12 @@
   database.ref().child(opponentNum).on("value", function(snapshot) {
     if(snapshot!==null) {
       $("#oppName").text(snapshot.val().name);
-      $("#oppRecord").text("Wins: " 
-          + snapshot.val().wins + ", Losses: " 
-          + snapshot.val().losses + ", Ties: " 
-          + snapshot.val().ties);
+      $("#oppAvatar").attr("src", "./assets/images/" + snapshot.val().avatar + ".png");
+      $("#oppAvatar").attr("data-toggle", "on");
+      $("#oppAvatar").css("display", "initial");
+      $("#oppRecord").html("Wins: " + snapshot.val().wins 
+        + "<br/>Losses: " + snapshot.val().losses 
+        + "<br/>Ties: " + snapshot.val().ties);
     }
     // If any errors are experienced, log them to console.
   }, function(errorObject) {
@@ -145,10 +150,21 @@
       name = snapshot.val().name;
     });
     database.ref().child("Chat").push(name + ": " + $("#myMessage").val().trim());
+    $("#myMessage").val("");
   });
 
+   //Clears the chat in Firebase when the clear button is pressed
+  $("#clear").on("click", function() {
 
+    event.preventDefault();
+    database.ref().child("Chat").set("");
+    $("#chatbox").html("");
+
+  });
+
+  //Updates the chat box anytime something is added
   database.ref().child("Chat").on("child_added", function(childSnapshot, prevChildKey) {
+  
     console.log(childSnapshot.val());
     $("#chatbox").prepend("<div>" + childSnapshot.val() + "</div>");
 
@@ -299,4 +315,4 @@
 //  Active Text  //
 ///////////////////
 
-  updateStatus("Enter your name to start!");
+  updateStatus("Set up your profile to start!");
